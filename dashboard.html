@@ -16,7 +16,6 @@
             color: #0f172a;
         }
 
-        /* CARD CONTAINER */
         .card {
             background: white;
             padding: 25px;
@@ -24,7 +23,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
         }
 
-        /* CONTROLS */
         .controls {
             display: flex;
             gap: 10px;
@@ -83,7 +81,6 @@
             background: #b91c1c;
         }
 
-        /* TABLE */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -110,7 +107,6 @@
             background: #f9fafb;
         }
 
-        /* STATUS COLORS */
         select {
             padding: 6px;
             border-radius: 6px;
@@ -118,36 +114,20 @@
             border: 1px solid #ccc;
         }
 
-        .Pending {
-            background: #ffe5e5;
-        }
+        .Pending { background: #ffe5e5; }
+        .InProgress { background: #fff4cc; }
+        .Fixed { background: #e0ffe0; }
 
-        .InProgress {
-            background: #fff4cc;
-        }
-
-        .Fixed {
-            background: #e0ffe0;
-        }
-
-        /* RESPONSIVE */
         @media (max-width: 800px) {
-            body {
-                padding: 15px;
-            }
+            body { padding: 15px; }
 
             .controls {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            input {
-                width: 100%;
-            }
-
-            table {
-                font-size: 14px;
-            }
+            input { width: 100%; }
+            table { font-size: 14px; }
         }
     </style>
 </head>
@@ -185,17 +165,32 @@
 
 </div>
 
+<!-- 🔔 SOUND -->
+<audio id="ding" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwjd3ReMY2PawoIZEzccmLbB9voitWjAg7WdKFjMFXyE8k29vuuYVWma1Dz-SxUwRw/exec";
 
 let tickets = [];
 let hideFixed = false;
+let lastTicketCount = 0;
 
 function loadData() {
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
+
+            const newCount = data.length;
+
+            // 🔔 Play sound if new ticket added
+            if (lastTicketCount && newCount > lastTicketCount) {
+                const sound = document.getElementById("ding");
+                sound.play().catch(() => {}); // prevents browser error
+            }
+
+            lastTicketCount = newCount;
+
             tickets = data.reverse();
             renderTable();
         });
@@ -244,7 +239,6 @@ function renderTable() {
 }
 
 function updateStatus(ticket, status) {
-
     const data = new URLSearchParams();
     data.append("update", "true");
     data.append("ticket", ticket);
@@ -258,7 +252,6 @@ function updateStatus(ticket, status) {
 }
 
 function deleteTicket(ticket) {
-
     if (!confirm("Delete this ticket permanently?")) return;
 
     const data = new URLSearchParams();
