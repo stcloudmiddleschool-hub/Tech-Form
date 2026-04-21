@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SCMS Tech Help</title>
+
+    <script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+        }
+
+        .header {
+            background: #8C0000;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .header img {
+            height: 45px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 36px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #0f172a;
+        }
+
+        /* GRID LAYOUT */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #6b7280;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* INPUT ROW (first + last name side by side) */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #8C0000;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(140,0,0,0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #8C0000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #a50d25;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .scan-btn {
+            background: #2563eb;
+            font-weight: 600;
+        }
+
+        .scan-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .success {
+            text-align: center;
+            color: #16a34a;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        #scannerModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #reader {
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 4px solid white;
+        }
+
+        .scan-instructions {
+            color: white;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* ISSUE GRID */
+        .issue-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .issue-btn {
+            padding: 14px;
+            border-radius: 10px;
+            border: 2px solid #d1d5db;
+            background: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .issue-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .issue-btn.selected {
+            background: #8C0000;
+            color: white;
+            border-color: #8C0000;
+        }
+
+        #otherIssue {
+            display: none;
+            margin-top: 10px;
+        }
+
+        /* MOBILE */
+        @media (max-width: 700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="header_logo_img.png">
+    <span>SCMS Tech Help Desk</span>
+</div>
+
+<div class="container">
+<div class="card">
+
+    <h2>Device Support Request</h2>
+
+    <div class="form-grid">
+
+        <!-- STUDENT -->
+        <div class="section">
+            <div class="section-title">Student Information</div>
+
+            <div class="input-row">
+                <input id="firstName" placeholder="First Name">
+                <input id="lastName" placeholder="Last Name">
+            </div>
+
+            <input id="studentID" placeholder="Student ID">
+        </div>
+
+        <!-- DEVICE -->
+        <div class="section">
+            <div class="section-title">Device</div>
+            <input id="serial" placeholder="Device Serial Number">
+            <button class="scan-btn" onclick="startScan('serial')">📷 Scan Device</button>
+        </div>
+
+        <!-- ISSUE -->
+        <div class="section full-width">
+            <div class="section-title">Issue Type</div>
+
+            <div class="issue-grid">
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Broken Screen')">Broken Screen</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Won\'t Turn On')">Won't Turn On</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Lost My Laptop')">Lost My Laptop</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Lost My Charger')">Lost My Charger</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Keyboard Issue')">Keyboard Issue</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Battery Problem')">Battery Problem</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'WiFi Issue')">WiFi Issue</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Software Problem')">Software Problem</button>
+                <button type="button" class="issue-btn" onclick="setIssue(event,'Other')" style="grid-column: span 2;">Other</button>
+            </div>
+
+            <input id="otherIssue" placeholder="Describe issue...">
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="full-width">
+            <button id="submitBtn" onclick="submitForm()">Submit Request</button>
+            <div class="success" id="message"></div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+
+<!-- SCANNER MODAL -->
+<div id="scannerModal">
+    <div class="scan-instructions">Align barcode inside the camera</div>
+    <div id="reader"></div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwjd3ReMY2PawoIZEzccmLbB9voitWjAg7WdKFjMFXyE8k29vuuYVWma1Dz-SxUwRw/exec";
+
+let scannerRunning = false;
+let selectedIssue = "";
+let currentField = "";
+
+/* ISSUE SELECT */
+function setIssue(e, issue) {
+    selectedIssue = issue;
+
+    document.querySelectorAll(".issue-btn").forEach(btn => {
+        btn.classList.remove("selected");
+    });
+
+    e.target.classList.add("selected");
+
+    if (issue === "Other") {
+        document.getElementById("otherIssue").style.display = "block";
+    } else {
+        document.getElementById("otherIssue").style.display = "none";
+        document.getElementById("otherIssue").value = "";
+    }
+}
+
+/* START SCAN */
+function startScan(fieldId) {
+    currentField = fieldId;
+
+    const modal = document.getElementById("scannerModal");
+    modal.style.display = "flex";
+
+    if (scannerRunning) {
+        Quagga.stop();
+        Quagga.offDetected();
+    }
+
+    scannerRunning = true;
+
+    Quagga.init({
+        inputStream: {
+            type: "LiveStream",
+            target: document.querySelector('#reader'),
+            constraints: { facingMode: "environment" }
+        },
+        decoder: {
+            readers: ["code_128_reader", "code_39_reader", "ean_reader"]
+        }
+    }, function (err) {
+        if (err) {
+            alert("Camera error: " + err);
+            scannerRunning = false;
+            return;
+        }
+        Quagga.start();
+    });
+
+    Quagga.offDetected();
+
+    Quagga.onDetected(function (data) {
+        document.getElementById(currentField).value = data.codeResult.code;
+
+        Quagga.stop();
+        Quagga.offDetected();
+
+        document.getElementById("scannerModal").style.display = "none";
+        document.getElementById("reader").innerHTML = "";
+
+        scannerRunning = false;
+    });
+}
+
+/* SUBMIT */
+function submitForm() {
+    const btn = document.getElementById("submitBtn");
+
+    let firstName = document.getElementById("firstName").value.trim();
+    let lastName = document.getElementById("lastName").value.trim();
+    let studentID = document.getElementById("studentID").value.trim();
+    let serial = document.getElementById("serial").value.trim();
+
+    let issue = selectedIssue;
+
+    if (issue === "Other") {
+        issue = document.getElementById("otherIssue").value.trim();
+    }
+
+    if (!firstName || !lastName || !studentID || !serial || !issue) {
+        alert("Please fill out all fields.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+
+    fetch(API_URL, {
+        method: "POST",
+        body: new URLSearchParams({
+            firstName,
+            lastName,
+            studentID,
+            serial,
+            issue
+        })
+    })
+    .then(res => res.text())
+    .then(data => {
+        if (data.includes("success")) {
+            document.getElementById("message").textContent = "✅ Request Submitted!";
+        } else {
+            alert("Server response: " + data);
+        }
+
+        document.querySelectorAll("input").forEach(i => i.value = "");
+        document.getElementById("otherIssue").style.display = "none";
+
+        selectedIssue = "";
+        document.querySelectorAll(".issue-btn").forEach(btn => btn.classList.remove("selected"));
+
+        setTimeout(() => {
+            document.getElementById("message").textContent = "";
+        }, 3000);
+    })
+    .catch(err => alert("Error: " + err.message))
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = "Submit Request";
+    });
+}
+</script>
+
+</body>
+</html>
